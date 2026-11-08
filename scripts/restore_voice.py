@@ -157,14 +157,45 @@ def silk_to_audio(blob, wav_path, mp3_path, want_mp3):
     data = blob
     if blob[:6] == b'#!AMR\n':
         data = blob[6:]  # 去掉 AMR 外壳, 剩 \x02#!SILK_V3...
-    inp, out = io.BytesIO(data), io.BytesIO()
+    pcm = b''
+    # B1: 标准解码
     try:
-        pysilk.decode(inp, out, SAMPLE_RATE)
-    except Exception as e:
-        return 0, False, f"decode: {e}"
-    pcm = out.getvalue()
+        out = io.BytesIO()
+        pysilk.decode(io.BytesIO(data), out, SAMPLE_RATE)
+        pcm = out.getvalue()
+    except Exception:
+        pass
+    # B2: 容错解码 (被截断的长语音, loss=True)
     if len(pcm) < 100:
-        return 0, False, f"PCM too short ({len(pcm)})"
+        try:
+            out = io.BytesIO()
+            pysilk.decode(io.BytesIO(data), out, SAMPLE_RATE, loss=True)
+            pcm = out.getvalue()
+        except Exception:
+            pass
+    # B3: 手动切帧, 丢掉尾部残缺帧再解 (300KB 上限截断的长语音)
+    if len(pcm) < 100 and len(data) > 10:
+        header = data[:10]
+        body = data[10:]
+        frames, i = [], 0
+        while i + 2 <= len(body):
+            ln = int.from_bytes(body[i:i+2], 'little')
+            if ln <= 0 or ln > 2000 or i + 2 + ln > len(body):
+                break
+            frames.append(body[i:i+2+ln])
+            i += 2 + ln
+        if frames:
+            for payload in (header + b''.join(frames), b''.join(frames)):
+                try:
+                    out = io.BytesIO()
+                    pysilk.decode(io.BytesIO(payload), out, SAMPLE_RATE)
+                    if len(out.getvalue()) > 100:
+                        pcm = out.getvalue()
+                        break
+                except Exception:
+                    pass
+    if len(pcm) < 100:
+        return 0, False, "decode: INVALID (源数据可能截断/损坏)"
     dur = len(pcm) / 2 / SAMPLE_RATE
     try:
         with wave.open(wav_path, 'wb') as w:
