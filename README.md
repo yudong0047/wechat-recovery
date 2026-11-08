@@ -86,8 +86,9 @@ python scripts\restore_voice.py ^
 ```
 
 - 采样率 24000Hz 单声道，WAV → MP3（libmp3lame q4）
+- 自动兼容两种封装：标准 `\x02#!SILK_V3`（13,295条）与 `#!AMR\n` 外壳混合格式（22条）
 - 纯只读源数据，**绝不改动微信目录**
-- 没装 ffmpeg 时自动只导 WAV
+- 没装 ffmpeg 时自动只导 WAV；已生成的文件会跳过，可安全重复运行（补漏）
 
 ## 🔑 密钥说明
 

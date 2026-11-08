@@ -149,13 +149,19 @@ robocopy "旧电脑\xwechat_files\微信ID\msg\attach" \
 - ffmpeg 可选 (加入 PATH, 语音 WAV→MP3)
 - Windows only (微信仅 Windows)
 
-## 语音还原技术要点 (v1.1)
+## 语音还原技术要点 (v1.1.1)
 - 位置: `db_storage/message/media_0.db.factory/<时间戳>/media_0.db`
   → 表 `VoiceInfo` → 列 `voice_data` (BLOB)
-- 头: `02 23 21 53 49 4C 4B 5F 56 33` = `\x02#!SILK_V3`
-- ffmpeg 8.x **不支持** SILK, 必须 `pysilk.decode()`
+- **两种封装** (实测 13,317 条):
+  1. `\x02#!SILK_V3` (13,295 条) → `pysilk.decode()` → PCM
+  2. `#!AMR\n\x02#!SILK_V3...` (22 条, AMR 外壳混合封装)
+     → ffmpeg 整段解成功, 或剥掉 `#!AMR\n` 后交 pysilk 也成功
+     → 脚本自动两种都试, 优先 ffmpeg
+- ffmpeg 8.x **不支持** SILK, 标准语音必须 `pysilk.decode()`
 - `pysilk.decode()` 的 input 必须是 file-like (`io.BytesIO`), 传 bytes 会报
   `TypeError: input except a file-like object`
 - 采样率 24000Hz；PCM s16le → WAV → (ffmpeg libmp3lame) MP3
 - `media_0.db` 顶层那个文件是占位/损坏的, 要进 `.factory/<时间戳>/` 子目录
 - 会话名从 `message_N.db` 的 `chat_name`/`name2id` 等表映射, 失败则回退 `会话_<id>`
+- BLOB 完整性: 13,317 条全部有效(非空), 平均 ~19.8KB, 合计 251.4 MB
+- 语音时间跨度: **2019-02 ~ 2026-11** (2016-2018 语音物理缺失, 同 .dat 图片)
