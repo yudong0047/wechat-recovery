@@ -1,0 +1,24 @@
+XOR_KEY=225
+XOR_KEY_HEX=0xE1
+AES_KEY=6a27d958a2a01abf
+AES_KEY_HEX=36613237643935386132613031616266
+DB_KEY=2893cdc3e8ef46dc8abd82e9c4c4b8907a8718d582724bbe9cd794f66b90b8ba
+API_ENDPOINT=https://view.free.c3o.re/api/key
+
+# 微信 4.x 数据库
+# 加密格式: WCDB = SQLCipher v4
+# 加密算法: AES-256-CBC
+# page_size: 4096
+# RESERVE: 80 (16 bytes IV + 64 bytes HMAC-SHA256)
+# PBKDF2: SHA512, 256000 iterations
+
+# .dat 文件加密格式
+# V2 格式: header = 07 08 V2 08 07 + AES-128-CBC + XOR 0xe1
+# 变种1 (JPEG): XOR 0xe1 → FF D8 FF (0x1E 0x39 0x1E 加密态)
+# 变种2 (PNG):  XOR 0xe1 → 89 50 4E 47 (0x68 0xB1 0xAF 0xA6 加密态)
+
+# 关键发现
+# 1. 微信打开 .dat 会自动 XOR 0xe1
+# 2. 如果 .dat 是明文 JPG/PNG → 微信 XOR 后变垃圾 → 显示不出来!
+# 3. 必须先 XOR 一次加密回去 (1E 39 1E / 68 B1 AF A6) → 微信才能解
+# 4. 清缓存后微信会重新扫描所有 .dat 生成缩略图

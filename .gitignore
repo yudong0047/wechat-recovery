@@ -1,0 +1,20 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# 临时
+*.log
+.DS_Store
+Thumbs.db
+
+# 敏感 (不要上传密钥!)
+# config/media_keys.txt 已保留因为是公钥信息, 但如果你有自己的 key 请 gitignore 它
+!config/media_keys.txt
+
+# 工具
+test_*.py
+_dry_run*.py
