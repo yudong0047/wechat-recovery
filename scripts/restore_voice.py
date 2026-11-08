@@ -100,10 +100,64 @@ def load_chat_names(root):
     return names
 
 
+def _wav_to_mp3(wav_path, mp3_path, want_mp3):
+    """WAV -> MP3, 返回错误串(空=成功)"""
+    if not want_mp3:
+        return ""
+    try:
+        r = subprocess.run(
+            ['ffmpeg', '-y', '-loglevel', 'error', '-i', wav_path,
+             '-codec:a', 'libmp3lame', '-qscale:a', '4', mp3_path],
+            capture_output=True, timeout=60)
+        if r.returncode != 0:
+            return f"mp3: {r.stderr.decode(errors='replace')[:80]}"
+        try:
+            os.remove(wav_path)  # 删中间 WAV, 只留 MP3
+        except OSError:
+            pass
+    except Exception as e:
+        return f"mp3: {e}"
+    return ""
+
+
 def silk_to_audio(blob, wav_path, mp3_path, want_mp3):
-    """SILK v3 BLOB -> WAV (-> MP3), 返回 (时长秒, 成功?, 错误)"""
+    """微信语音 BLOB -> WAV (-> MP3), 返回 (时长秒, 成功?, 错误)
+
+    支持两种封装:
+      1) \x02#!SILK_V3 ...  -> pysilk 解码 (绝大多数, 13295 条)
+      2) #!AMR\\n\\x02#!SILK_V3 ... -> AMR 外壳, ffmpeg 可直接解 (22 条)
+         剥掉 '#!AMR\\n' 后也可交 pysilk, 二者皆可还原。
+    """
     import pysilk
-    inp, out = io.BytesIO(blob), io.BytesIO()
+
+    # ---- 分支 A: AMR 外壳 (头 '#!AMR\\n') ----
+    if blob[:6] == b'#!AMR\n' and shutil.which('ffmpeg'):
+        tmp_amr = wav_path[:-4] + '.amr'
+        try:
+            with open(tmp_amr, 'wb') as fh:
+                fh.write(blob)
+            r = subprocess.run(
+                ['ffmpeg', '-y', '-loglevel', 'error', '-i', tmp_amr,
+                 '-ar', str(SAMPLE_RATE), '-ac', '1', wav_path],
+                capture_output=True, timeout=60)
+            if r.returncode == 0 and os.path.exists(wav_path) and os.path.getsize(wav_path) > 1000:
+                dur = (os.path.getsize(wav_path) - 44) / 2 / SAMPLE_RATE
+                err = _wav_to_mp3(wav_path, mp3_path, want_mp3)
+                return (dur, not err, err)
+        except Exception:
+            pass
+        finally:
+            try:
+                os.remove(tmp_amr)
+            except OSError:
+                pass
+        # ffmpeg 失败则继续走 pysilk (剥掉 AMR 头)
+
+    # ---- 分支 B: 标准 SILK v3 / 剥壳后的 SILK ----
+    data = blob
+    if blob[:6] == b'#!AMR\n':
+        data = blob[6:]  # 去掉 AMR 外壳, 剩 \x02#!SILK_V3...
+    inp, out = io.BytesIO(data), io.BytesIO()
     try:
         pysilk.decode(inp, out, SAMPLE_RATE)
     except Exception as e:
@@ -120,21 +174,8 @@ def silk_to_audio(blob, wav_path, mp3_path, want_mp3):
             w.writeframes(pcm)
     except Exception as e:
         return 0, False, f"wav: {e}"
-    if want_mp3:
-        try:
-            r = subprocess.run(
-                ['ffmpeg', '-y', '-loglevel', 'error', '-i', wav_path,
-                 '-codec:a', 'libmp3lame', '-qscale:a', '4', mp3_path],
-                capture_output=True, timeout=60)
-            if r.returncode != 0:
-                return dur, False, f"mp3: {r.stderr.decode(errors='replace')[:80]}"
-            try:
-                os.remove(wav_path)  # 删中间 WAV, 只留 MP3
-            except OSError:
-                pass
-        except Exception as e:
-            return dur, False, f"mp3: {e}"
-    return dur, True, ""
+    err = _wav_to_mp3(wav_path, mp3_path, want_mp3)
+    return dur, not err, err
 
 
 def safe_name(s, fallback):
