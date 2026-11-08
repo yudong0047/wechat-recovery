@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo   微信数据恢复工具包 v1.0
+echo   微信数据恢复工具包 v1.1
 echo   WeChat Data Recovery Toolkit
 echo ========================================
 echo.
@@ -29,6 +29,7 @@ echo   [8] 一键全流程: 扫描→解密→加密→清缓存
 echo   [9] 合并多份微信数据 (从其他目录拷贝 .dat)
 echo  [10] 解密 message_*.db / media_*.db (导出聊天内容)
 echo  [11] 检查文件权限 + 修复只读属性
+echo  [13] 语音还原: SILK v3 BLOB → MP3 (v1.1 新增) ⭐
 echo  [12] 退出
 echo.
 set /p choice=请输入编号: 
@@ -44,6 +45,7 @@ if "%choice%"=="8" goto FULL_AUTO
 if "%choice%"=="9" goto MERGE
 if "%choice%"=="10" goto DECRYPT_DB
 if "%choice%"=="11" goto FIX_PERM
+if "%choice%"=="13" goto RESTORE_VOICE
 if "%choice%"=="12" goto END
 goto MENU
 
@@ -182,6 +184,21 @@ for f in base.rglob('*.dat'):
         pass
 print(f'修复 {fixed} 个文件')
 " "%WECHAT_DIR%"
+goto MENU
+
+:RESTORE_VOICE
+echo.
+echo === 语音还原 (SILK v3 → MP3) ===
+echo 从 media_N.db 的 VoiceInfo.voice_data 提取语音, 按会话+年月导出
+echo 依赖: pip install pysilk  +  ffmpeg (可选, 用于转 MP3)
+echo.
+set /p VOICE_SRC=微信账号目录 (回车用默认 %WECHAT_DIR%\wxid_db7cm2zc6ou321_a13f): 
+if "%VOICE_SRC%"=="" set "VOICE_SRC=%WECHAT_DIR%\wxid_db7cm2zc6ou321_a13f"
+set /p VOICE_OUT=输出目录 (回车用默认 %WORKDIR%语音还原): 
+if "%VOICE_OUT%"=="" set "VOICE_OUT=%WORKDIR%语音还原"
+"%PYTHON%" "%WORKDIR%scripts\restore_voice.py" "%VOICE_SRC%" "%VOICE_OUT%"
+echo.
+echo 完成! 语音在: %VOICE_OUT%
 goto MENU
 
 :END

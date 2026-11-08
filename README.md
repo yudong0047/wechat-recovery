@@ -1,4 +1,4 @@
-# 微信数据恢复工具包 v1.0
+# 微信数据恢复工具包 v1.1
 
 ## 📦 工具包内容
 
@@ -16,7 +16,8 @@ WeChatRecoveryToolkit/
 │   ├── v2_decrypt.py          ← V2 文件 AES+XOR 解密
 │   ├── fetch_v2_keys.py       ← remote API 自动拿 AES/XOR key
 │   ├── clear_cache.py         ← 清缩略图缓存 + 重启微信
-│   └── decrypt_all_dbs.py     ← 批量解密 .db (WCDB/SQLCipher)
+│   ├── decrypt_all_dbs.py     ← 批量解密 .db (WCDB/SQLCipher)
+│   └── restore_voice.py       ← ⭐ 语音还原 (SILK v3 → MP3) v1.1 新增
 ├── reference/
 │   ├── wechat_encryption.md   ← 加密原理详解
 │   └── troubleshooting.md     ← 常见问题排查
@@ -52,6 +53,41 @@ WeChatRecoveryToolkit/
 2. 选 [5] V2 解密 → V2 文件也要解
 3. ⚠️ 但解完一定要记得重新加密回去! (选 [4])
 ```
+
+### 场景 D: 导出所有语音消息 (v1.1 新增) ⭐
+
+微信 4.x 的语音**不是**独立的 `.amr` 文件，而是存在
+`db_storage/message/media_N.db` 的 `VoiceInfo.voice_data` BLOB 里，
+格式为 `0x02 + "#!SILK_V3" + SILK 流`。ffmpeg 不认 SILK，需 `pysilk`。
+
+```bat
+:: 1) 装依赖
+pip install pysilk
+
+:: 2) 菜单选 [13] 语音还原 (或直接命令行)
+python scripts\restore_voice.py "<微信账号目录>" "<输出目录>"
+
+:: 例:
+python scripts\restore_voice.py ^
+  "D:\WeChat\xwechat_files\wxid_xxx_a13f" "D:\语音还原"
+```
+
+输出结构（按年月 + 会话分组）+ `语音台账.csv`：
+
+```
+语音还原/
+├── 2025-05/
+│   └── 张三/
+│       └── 2025-05-12_14-30-11_1932830311489856067.mp3
+├── 2026-06/
+│   └── 工作群/
+│       └── ...
+└── 语音台账.csv    ← 时间/会话/时长/文件名/状态
+```
+
+- 采样率 24000Hz 单声道，WAV → MP3（libmp3lame q4）
+- 纯只读源数据，**绝不改动微信目录**
+- 没装 ffmpeg 时自动只导 WAV
 
 ## 🔑 密钥说明
 
@@ -91,6 +127,8 @@ V2 格式 (`07 08 V2 08 07`) 微信内部有内置 AES key，会自动解密。
 | requests | remote API | `pip install requests` |
 | WeChatDataAnalysis | DB 解密 | `pip install wechat-data-analysis` |
 | pycryptodome | AES 解密 (可选) | `pip install pycryptodome` |
+| **pysilk** | **语音 SILK v3 解码 (v1.1)** | `pip install pysilk` |
+| **ffmpeg** | **语音 WAV→MP3 (可选)** | 加入 PATH |
 
 ## 📞 故障排查
 
@@ -108,6 +146,19 @@ A: 1) 检查文件头是不是真的加密了 → 看 run.bat [2] 格式扫描
 **Q: 2016-2019 的图片确实没了？**
 A: 微信"修复数据"时删除了磁盘文件。必须从外部备份（压缩包/云盘/旧硬盘）恢复。
 
+**Q: 语音文件在哪？翻遍了只有几个 .amr？**
+A: 微信 4.x 语音存在数据库 BLOB (`VoiceInfo.voice_data`)，不是独立文件。
+   用 `scripts/restore_voice.py` 导出。全盘散落的 `.amr` SILK 文件多半是 QQ/TIM 的。
+
+**Q: pysilk 装不上 / 报 "input except a file-like object"？**
+A: 用 `pip install pysilk`（有 Windows 预编译 wheel）。`decode()` 的输入必须是
+   `io.BytesIO(blob)` 文件对象，不能直接传 bytes —— 脚本里已处理。
+
+**Q: 语音解码出来没声音 / 时长不对？**
+A: 采样率固定 24000Hz。若源文件是 16000Hz，改脚本 `SAMPLE_RATE=16000` 重试。
+
 ## 📝 更新日志
 
+- **v1.1** (2026-11-08) — 新增语音还原 `scripts/restore_voice.py`：
+  SILK v3 BLOB → MP3，按会话+年月分组，CSV 台账，菜单项 [13]
 - **v1.0** (2026-11-08) — 初始版本，基于 wxid_db7cm2zc6ou321 主账号测试

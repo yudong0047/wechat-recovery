@@ -73,6 +73,10 @@ python scripts/decrypt_all_dbs.py [db_storage目录] [输出目录] [key]
 
 # 7. fetch remote API key
 python scripts/fetch_v2_keys.py
+
+# 8. 语音还原 (v1.1): media_N.db 的 SILK v3 BLOB -> MP3
+pip install pysilk
+python scripts/restore_voice.py "<微信账号目录>" "<输出目录>"
 ```
 
 ## 典型诊断场景
@@ -93,6 +97,19 @@ check_dat_headers.py → 格式全正确
 → 如果某年开始 0 文件: 微信修复时删掉了
 → 合并旧电脑/旧硬盘数据: robocopy src dst /E *.dat
 → 如果全电脑都没有: 物理文件丢失, 找外部备份
+```
+
+### 场景 4: 想导出语音消息 (v1.1)
+```
+用户说"语音能还原吗""语音消息导出""聊天里的语音在哪"
+→ 关键认知: 微信 4.x 语音不是独立 .amr 文件!
+   在 db_storage/message/media_N.db 的 VoiceInfo.voice_data BLOB
+   格式 0x02 + "#!SILK_V3" + SILK 流
+→ 全盘散落的 .amr SILK 文件大多是 QQ/TIM 的, 不是微信
+→ 依赖: pip install pysilk (ffmpeg 可选, 用于 MP3)
+→ 运行: python scripts/restore_voice.py <账号目录> <输出目录>
+→ 输出: 按 年月/会话 分组的 MP3 + 语音台账.csv
+→ 采样率 24000Hz 单声道; 纯只读, 不改动微信目录
 ```
 
 ### 场景 3: 数据库解密 key 不匹配
@@ -128,4 +145,17 @@ robocopy "旧电脑\xwechat_files\微信ID\msg\attach" \
 - requests (`pip install requests`)
 - WeChatDataAnalysis (`pip install wechat-data-analysis`)
 - pycryptodome 可选 (`pip install pycryptodome`)
+- pysilk (`pip install pysilk`) — 语音还原 (v1.1)
+- ffmpeg 可选 (加入 PATH, 语音 WAV→MP3)
 - Windows only (微信仅 Windows)
+
+## 语音还原技术要点 (v1.1)
+- 位置: `db_storage/message/media_0.db.factory/<时间戳>/media_0.db`
+  → 表 `VoiceInfo` → 列 `voice_data` (BLOB)
+- 头: `02 23 21 53 49 4C 4B 5F 56 33` = `\x02#!SILK_V3`
+- ffmpeg 8.x **不支持** SILK, 必须 `pysilk.decode()`
+- `pysilk.decode()` 的 input 必须是 file-like (`io.BytesIO`), 传 bytes 会报
+  `TypeError: input except a file-like object`
+- 采样率 24000Hz；PCM s16le → WAV → (ffmpeg libmp3lame) MP3
+- `media_0.db` 顶层那个文件是占位/损坏的, 要进 `.factory/<时间戳>/` 子目录
+- 会话名从 `message_N.db` 的 `chat_name`/`name2id` 等表映射, 失败则回退 `会话_<id>`
