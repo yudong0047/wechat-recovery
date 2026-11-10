@@ -38,7 +38,7 @@ def classify_header(data):
 
 def main():
     scan_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else \
-        Path(r"D:\tool\WeChat\聊天记录\xwechat_files")
+        Path(r"D:\WeChat\xwechat_files")
     
     print(f"扫描目录: {scan_dir}")
     

@@ -9,9 +9,9 @@ echo ========================================
 echo.
 
 REM ====== 配置 ======
-set "PYTHON=D:\tool\Python314\python.exe"
+set "PYTHON=python"
 set "WORKDIR=%~dp0"
-set "WECHAT_DIR=D:\tool\WeChat\聊天记录\xwechat_files"
+set "WECHAT_DIR=D:\WeChat\xwechat_files"
 set "KEY_INFO=2893cdc3e8ef46dc8abd82e9c4c4b8907a8718d582724bbe9cd794f66b90b8ba"
 
 :MENU
@@ -157,7 +157,7 @@ goto MENU
 echo.
 echo === 解密数据库 ===
 set /p DB_DIR=db_storage 目录: 
-if "%DB_DIR%"=="" set "DB_DIR=%WECHAT_DIR%\wxid_db7cm2zc6ou321_a13f\db_storage"
+if "%DB_DIR%"=="" set "DB_DIR=%WECHAT_DIR%\wxid_XXXXXXXXXXXX_a13f\db_storage"
 set /p OUT_DIR=输出目录: 
 if "%OUT_DIR%"=="" set "OUT_DIR=%WORKDIR%decrypted"
 "%PYTHON%" "%WORKDIR%scripts\decrypt_all_dbs.py" "%DB_DIR%" "%OUT_DIR%" "%KEY_INFO%"
@@ -171,7 +171,7 @@ $py -c "
 import os
 import sys
 from pathlib import Path
-base = Path(sys.argv[1] if len(sys.argv) > 1 else r'D:\tool\WeChat\聊天记录\xwechat_files')
+base = Path(sys.argv[1] if len(sys.argv) > 1 else r'D:\WeChat\xwechat_files')
 fixed = 0
 for f in base.rglob('*.dat'):
     try:
@@ -192,8 +192,8 @@ echo === 语音还原 (SILK v3 → MP3) ===
 echo 从 media_N.db 的 VoiceInfo.voice_data 提取语音, 按会话+年月导出
 echo 依赖: pip install pysilk  +  ffmpeg (可选, 用于转 MP3)
 echo.
-set /p VOICE_SRC=微信账号目录 (回车用默认 %WECHAT_DIR%\wxid_db7cm2zc6ou321_a13f): 
-if "%VOICE_SRC%"=="" set "VOICE_SRC=%WECHAT_DIR%\wxid_db7cm2zc6ou321_a13f"
+set /p VOICE_SRC=微信账号目录 (回车用默认 %WECHAT_DIR%\wxid_XXXXXXXXXXXX_a13f): 
+if "%VOICE_SRC%"=="" set "VOICE_SRC=%WECHAT_DIR%\wxid_XXXXXXXXXXXX_a13f"
 set /p VOICE_OUT=输出目录 (回车用默认 %WORKDIR%语音还原): 
 if "%VOICE_OUT%"=="" set "VOICE_OUT=%WORKDIR%语音还原"
 "%PYTHON%" "%WORKDIR%scripts\restore_voice.py" "%VOICE_SRC%" "%VOICE_OUT%"

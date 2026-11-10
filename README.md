@@ -20,6 +20,7 @@ WeChatRecoveryToolkit/
 │   └── restore_voice.py       ← ⭐ 语音还原 (SILK v3 → MP3) v1.1 新增
 ├── reference/
 │   ├── wechat_encryption.md   ← 加密原理详解
+│   ├── roam-backup-rmfh.md    ← 「迁移与备份」RMFH 漫游备份包逆向与恢复路径 v1.1.3 新增
 │   └── troubleshooting.md     ← 常见问题排查
 └── tools/
     └── (放 WeChatDataAnalysis wheel)
@@ -166,4 +167,4 @@ A: 采样率固定 24000Hz。若源文件是 16000Hz，改脚本 `SAMPLE_RATE=16
 - **v1.1.1** (2026-11-08) — 兼容 AMR 外壳混合封装 (22 条)
 - **v1.1** (2026-11-08) — 新增语音还原 `scripts/restore_voice.py`：
   SILK v3 BLOB → MP3，按会话+年月分组，CSV 台账，菜单项 [13]
-- **v1.0** (2026-11-08) — 初始版本，基于 wxid_db7cm2zc6ou321 主账号测试
+- **v1.0** (2026-11-08) — 初始版本，基于 wxid_XXXXXXXXXXXX 主账号测试

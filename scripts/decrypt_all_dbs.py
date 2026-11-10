@@ -7,21 +7,21 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-sys.path.insert(0, r"E:\微信数据导出\tools\WeChatDataAnalysis\src")
+sys.path.insert(0, r"<WeChatDataAnalysis>\src")
 
 try:
     from wechat_decrypt_tool.wechat_decrypt import WeChatDatabaseDecryptor
 except ImportError:
     print("需要 WeChatDataAnalysis 工具!")
     print("  pip install wechat-data-analysis")
-    print("  或指定 E:\微信数据导出\tools\WeChatDataAnalysis\src 在 PYTHONPATH")
+    print(r"  或指定 <WeChatDataAnalysis>\src 在 PYTHONPATH")
     sys.exit(1)
 
 def main():
     db_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else \
-        Path(r"D:\tool\WeChat\聊天记录\xwechat_files\wxid_db7cm2zc6ou321_a13f\db_storage")
+        Path(r"D:\WeChat\xwechat_files\wxid_XXXXXXXXXXXX_a13f\db_storage")
     out_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else \
-        Path(r"E:\微信数据导出\toolkit_decrypted")
+        Path(r"D:\WeChat\decrypted")
     key = sys.argv[3] if len(sys.argv) > 3 else \
         "2893cdc3e8ef46dc8abd82e9c4c4b8907a8718d582724bbe9cd794f66b90b8ba"
     

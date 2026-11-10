@@ -78,7 +78,7 @@ def xor_encrypt_file(args):
 
 def main():
     target_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else \
-        Path(r"D:\tool\WeChat\聊天记录\xwechat_files")
+        Path(r"D:\WeChat\xwechat_files")
     
     print(f"反向加密目录: {target_dir}")
     print(f"XOR key: 0x{XOR_KEY:02x}")

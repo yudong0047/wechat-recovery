@@ -3,7 +3,7 @@ XOR_KEY_HEX=0xE1
 AES_KEY=6a27d958a2a01abf
 AES_KEY_HEX=36613237643935386132613031616266
 DB_KEY=2893cdc3e8ef46dc8abd82e9c4c4b8907a8718d582724bbe9cd794f66b90b8ba
-API_ENDPOINT=https://view.free.c3o.re/api/key
+API_ENDPOINT=https://your-key-api.example.com/api/key
 
 # 微信 4.x 数据库
 # 加密格式: WCDB = SQLCipher v4

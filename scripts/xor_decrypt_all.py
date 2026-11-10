@@ -59,7 +59,7 @@ def xor_decrypt_file(args):
 
 def main():
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else \
-        Path(r"D:\tool\WeChat\聊天记录\xwechat_files")
+        Path(r"D:\WeChat\xwechat_files")
     
     suffix = len(sys.argv) > 2  # 加扩展名
     

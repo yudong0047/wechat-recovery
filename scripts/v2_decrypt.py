@@ -64,7 +64,7 @@ def decrypt_v2_file(fpath, aes_key):
 
 def main():
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else \
-        Path(r"D:\tool\WeChat\聊天记录\xwechat_files")
+        Path(r"D:\WeChat\xwechat_files")
     aes_key = sys.argv[2] if len(sys.argv) > 2 else '6a27d958a2a01abf'
     
     print(f"V2 AES 解密")

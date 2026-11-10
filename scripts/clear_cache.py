@@ -10,7 +10,7 @@ import subprocess
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-DEFAULT_CACHE_DIR = Path(r"D:\tool\WeChat\聊天记录\xwechat_files\wxid_db7cm2zc6ou321_a13f\cache")
+DEFAULT_CACHE_DIR = Path(r"D:\WeChat\xwechat_files\wxid_XXXXXXXXXXXX_a13f\cache")
 
 def kill_wechat():
     """关闭微信"""
@@ -83,7 +83,7 @@ def start_wechat():
     candidates = [
         r"D:\Program Files (x86)\Tencent\WeChat\WeChat.exe",
         r"C:\Program Files (x86)\Tencent\WeChat\WeChat.exe",
-        r"D:\tool\WeChat\WeChat.exe",
+        r"D:\WeChat\WeChat.exe",
     ]
     
     wechat_exe = None

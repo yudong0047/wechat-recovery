@@ -255,7 +255,7 @@ def decrypt_dbs(root_dir, out_dir):
         return
     
     try:
-        sys.path.insert(0, r"E:\微信数据导出\tools\WeChatDataAnalysis\src")
+        sys.path.insert(0, r"<WeChatDataAnalysis>\src")
         from wechat_decrypt_tool.wechat_decrypt import WeChatDatabaseDecryptor
     except ImportError:
         print("  ⚠️ WeChatDataAnalysis 未安装, 跳过 DB 解密")

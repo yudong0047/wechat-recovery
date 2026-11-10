@@ -9,7 +9,7 @@ from collections import Counter, defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
 
 XOR_KEY = 0xE1
-root = r'D:\tool\WeChat\聊天记录\xwechat_files\wxid_db7cm2zc6ou321_a13f'
+root = r'D:\WeChat\xwechat_files\wxid_XXXXXXXXXXXX_a13f'
 
 def classify_header(data):
     if data[:6] == b'\x07\x08V\x32\x08\x07': return 'V2'

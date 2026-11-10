@@ -1,6 +1,6 @@
 """
 从 remote API 自动获取 AES key 和 XOR key
-API: https://view.free.c3o.re/api/key
+API: https://your-key-api.example.com/api/key
 需要上传 global_config + global_config.crc
 """
 import os, sys, time, json, hashlib
@@ -18,14 +18,14 @@ except ImportError:
 for env in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
     os.environ.pop(env, None)
 
-API_URL = "https://view.free.c3o.re/api/key"
+API_URL = "https://your-key-api.example.com/api/key"
 
 def find_global_config():
     """找 global_config 文件"""
     candidates = [
-        r"D:\tool\WeChat\聊天记录\xwechat_files",
-        r"C:\Users\Administrator\OneDrive\家庭相片\文档\WeChat Files",
-        r"D:\Users\yudong0047\Documents\xwechat_files",
+        r"D:\WeChat\xwechat_files",
+        r"C:\Users\<You>\Documents\WeChat Files",
+        r"D:\Users\<You>\Documents\xwechat_files",
     ]
     
     for c in candidates:
